@@ -77,3 +77,38 @@ def test_runner_error_saves_failed_state(tmp_path, monkeypatch):
     assert task.status == "failed"
     assert task.attempts == 1
     assert "Unexpected runner failure" in restored.artifacts["test_output"]
+
+def test_retry_limit(tmp_path, monkeypatch):
+    state = WorkflowState(requirement="Build a URL shortener")
+    create_plan(state)
+
+    for task in state.tasks:
+        if task.id in {"requirements", "design", "implement"}:
+            task.status = "passed"
+
+    calls = []
+
+    def failing_runner():
+        calls.append("called")
+        return {"status": "failed", "output": "Simulated failure"}
+
+    monkeypatch.setattr(executor, "run_api_tests", failing_runner)
+    checkpoint = tmp_path / "workflow.json"
+
+    # Original attempt.
+    executor.execute_tests(state, checkpoint)
+
+    # One permitted retry.
+    executor.retry_tests(state, checkpoint)
+
+    # A third attempt must be refused.
+    with pytest.raises(ValueError, match="Retry limit"):
+        executor.retry_tests(state, checkpoint)
+
+    restored = load_state(checkpoint)
+    task = next(t for t in restored.tasks if t.id == "tests")
+
+    assert len(calls) == 2
+    assert task.attempts == 2
+    assert task.status == "blocked"
+    assert "Human review required" in restored.decisions[-1]

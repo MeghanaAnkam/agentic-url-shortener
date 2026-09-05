@@ -28,3 +28,21 @@ def execute_tests(state: WorkflowState, checkpoint: Path) -> None:
     task.status = report["status"]
     state.artifacts["test_output"] = report["output"]
     save_state(state, checkpoint)
+
+def retry_tests(state: WorkflowState, checkpoint: Path) -> None:
+    task = next(t for t in state.tasks if t.id == "tests")
+
+    if task.status != "failed":
+        raise ValueError("Only a failed test task can be retried.")
+
+    if task.attempts >= 2:
+        task.status = "blocked"
+        state.decisions.append(
+            "Test attempt limit reached. Human review required."
+        )
+        save_state(state, checkpoint)
+        raise ValueError("Retry limit reached. Human review required.")
+
+    task.status = "pending"
+    save_state(state, checkpoint)
+    execute_tests(state, checkpoint)
