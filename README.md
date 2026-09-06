@@ -133,7 +133,7 @@ Run:
 
 Current verified result:
 
-    58 passed
+    65 passed
 
 Two dependency deprecation warnings remain and are documented as a
 known limitation.
@@ -144,6 +144,7 @@ known limitation.
 - Brownfield daily-analytics enhancement
 - Ambiguous analytics request with safe clarification stop
 - Controlled audit, retry, and recovery demonstration
+- Test-improvement: closing a release-gate coverage gap
 
 See `docs/scenarios/`.
 
