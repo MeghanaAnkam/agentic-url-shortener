@@ -3,6 +3,7 @@ from pathlib import Path
 
 from orchestrator.requirements_agent import analyze_requirement
 from orchestrator.scheduler import ready_tasks
+from orchestrator.state import record_decision
 from orchestrator.storage import load_state, save_state
 
 
@@ -25,16 +26,32 @@ def main():
         analysis = analyze_requirement(state.requirement)
     except Exception as error:
         task.status = "failed"
-        state.decisions.append(
-            f"Requirements analysis failed: {type(error).__name__}"
+        record_decision(
+            state,
+            actor="agent:requirements",
+            stage="requirements",
+            action="analyze_requirement",
+            outcome="failed",
+            rationale=(
+                f"Requirements analysis failed: "
+                f"{type(error).__name__}"
+            ),
         )
         save_state(state, checkpoint)
         raise SystemExit("Analysis failed. Workflow saved as failed.")
 
     state.artifacts["requirements_analysis"] = analysis
     task.status = "blocked"
-    state.decisions.append(
-        "AI analysis saved. Human requirements review is required."
+    record_decision(
+        state,
+        actor="agent:requirements",
+        stage="requirements",
+        action="analyze_requirement",
+        outcome="awaiting_human_review",
+        rationale=(
+            "AI analysis saved. "
+            "Human requirements review is required."
+        ),
     )
     save_state(state, checkpoint)
 

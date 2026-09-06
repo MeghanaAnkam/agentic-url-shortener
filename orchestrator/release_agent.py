@@ -5,6 +5,7 @@ from pathlib import Path
 
 from orchestrator.scheduler import ready_tasks
 from orchestrator.storage import load_state, save_state
+from orchestrator.state import record_decision
 
 
 def execute_release(state, checkpoint: Path) -> dict:
@@ -88,19 +89,34 @@ No production deployment was performed.
         task.status = "passed"
         state.artifacts["release_report"] = str(report_path)
         state.artifacts["release_readiness"] = str(summary_path)
-        state.decisions.append(
-            "Release readiness passed after human approval. "
-            "No deployment was performed."
-        )
+        record_decision(
+    state,
+    actor="agent:release",
+    stage="release",
+    action="prepare_release",
+    outcome="release_ready",
+    rationale=(
+        "Release-readiness gates passed after human approval. "
+        "No deployment was performed."
+    ),
+)
         save_state(state, checkpoint)
 
         return report
 
     except Exception as error:
         task.status = "failed"
-        state.decisions.append(
-            f"Release failed safely: {type(error).__name__}: {error}"
-        )
+        record_decision(
+    state,
+    actor="agent:release",
+    stage="release",
+    action="prepare_release",
+    outcome="failed",
+    rationale=(
+        f"Release failed safely: "
+        f"{type(error).__name__}: {error}"
+    ),
+)
         save_state(state, checkpoint)
         raise
 

@@ -1,6 +1,7 @@
 import sys
 from pathlib import Path
 
+from orchestrator.state import record_decision
 from orchestrator.storage import load_state, save_state
 
 
@@ -53,8 +54,16 @@ REVIEW CORRECTIONS — these supersede conflicting proposal text:
     state.artifacts["design"] += "\n" + corrections
     state.design_approval = "pending"
     state.release_approval = "pending"
-    state.decisions.append(
-        "Design corrections recorded; design approval remains pending."
+    record_decision(
+        state,
+        actor="human:design-reviewer",
+        stage="design",
+        action="correct_design",
+        outcome="corrections_recorded",
+        rationale=(
+            "Human corrections supersede conflicting design text. "
+            "Design approval remains pending."
+        ),
     )
     save_state(state, checkpoint)
     print("Corrected design saved. Application code unchanged.")

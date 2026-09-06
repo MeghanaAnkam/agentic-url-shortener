@@ -3,6 +3,7 @@ import json
 import sys
 from pathlib import Path
 
+from orchestrator.state import record_decision
 from orchestrator.storage import load_state, save_state
 
 
@@ -84,9 +85,21 @@ def main():
     state.artifacts["applied_candidate_sha256"] = digest(code)
     state.artifacts["pre_apply_backup"] = str(backup)
     state.artifacts["candidate_validation"] = json.dumps(report)
-    state.decisions.append(
-        "Validated candidate and feature tests applied locally. "
-        "Release remains unapproved."
+    record_decision(
+        state,
+        actor="system:change-controller",
+        stage="implement",
+        action="apply_candidate",
+        outcome="applied",
+        rationale=(
+            "Validated candidate and feature tests applied locally. "
+            "Release remains unapproved."
+        ),
+        artifact_hashes={
+            "candidate": digest(code),
+            "daily_tests": report["daily_tests_sha256"],
+            "api_tests": report["api_tests_sha256"],
+        },
     )
     save_state(state, checkpoint)
     print("Candidate applied. Original code backed up.")

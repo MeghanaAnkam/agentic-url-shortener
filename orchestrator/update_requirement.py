@@ -3,6 +3,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from orchestrator.storage import load_state, save_state
+from orchestrator.state import record_decision
 
 
 def main():
@@ -43,10 +44,17 @@ def main():
         task.status = "pending"
         task.attempts = 0
 
-    state.decisions.append(
-        f"Requirement updated; old outputs and approvals invalidated. "
-        f"Previous state: {archive.name}"
-    )
+    record_decision(
+    state,
+    actor="human:requirements-owner",
+    stage="requirements",
+    action="update_requirement",
+    outcome="workflow_invalidated",
+    rationale=(
+        "Requirement changed. Previous outputs and approvals were "
+        f"invalidated. Archived state: {archive.name}"
+    ),
+)
     save_state(state, checkpoint)
     print("Requirement updated. Previous workflow archived.")
 

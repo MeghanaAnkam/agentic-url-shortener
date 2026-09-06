@@ -6,7 +6,23 @@ from dotenv import load_dotenv
 from google import genai
 
 from orchestrator.scheduler import ready_tasks
+from orchestrator.state import record_decision
 from orchestrator.storage import load_state, save_state
+
+
+def format_decisions(decisions) -> str:
+    if not decisions:
+        return "No previous decisions."
+
+    return "\n".join(
+        (
+            f"{decision.timestamp} | actor={decision.actor} | "
+            f"stage={decision.stage} | action={decision.action} | "
+            f"outcome={decision.outcome} | "
+            f"rationale={decision.rationale}"
+        )
+        for decision in decisions
+    )
 
 
 def main():
@@ -38,7 +54,7 @@ Approved requirement:
 {state.requirement}
 
 Decision history:
-{chr(10).join(state.decisions)}
+{format_decisions(state.decisions)}
 
 Current app/main.py:
 <source>
@@ -87,8 +103,16 @@ Do not propose deleting existing data.
         state.artifacts["design_source"] = source
         state.design_approval = "pending"
         task.status = "passed"
-        state.decisions.append(
-            "Design proposal generated; human approval still required."
+        record_decision(
+            state,
+            actor="agent:architect",
+            stage="design",
+            action="generate_design",
+            outcome="awaiting_human_approval",
+            rationale=(
+                "Design proposal generated. Implementation remains "
+                "blocked until human approval."
+            ),
         )
         save_state(state, checkpoint)
 

@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 from orchestrator.scheduler import ready_tasks
+from orchestrator.state import record_decision
 from orchestrator.storage import load_state, save_state
 
 
@@ -29,7 +30,14 @@ def main():
         raise SystemExit("Invalid response. Nothing changed.")
 
     task.status = "passed" if answer == "approve" else "blocked"
-    state.decisions.append(f"Human requirements review: {answer}. {note}")
+    record_decision(
+    state,
+    actor="human:requirements-reviewer",
+    stage="requirements",
+    action="review_requirement",
+    outcome="approved" if answer == "approve" else "rejected",
+    rationale=note,
+)
     save_state(state, checkpoint)
 
     print("Decision saved.")

@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from google import genai
 
 from orchestrator.scheduler import ready_tasks
+from orchestrator.state import record_decision
 from orchestrator.storage import load_state, save_state
 
 
@@ -108,9 +109,16 @@ Constraints:
         state.artifacts["candidate_main"] = str(candidate)
         state.artifacts["implementation_test_source"] = tests
         task.status = "blocked"
-        state.decisions.append(
-            "Candidate generated and syntax checked. "
-            "Execution and application require review."
+        record_decision(
+            state,
+            actor="agent:implementation",
+            stage="implement",
+            action="generate_candidate",
+            outcome="awaiting_validation",
+            rationale=(
+                "Candidate generated and syntax checked. "
+                "Execution and application require review."
+            ),
         )
         save_state(state, checkpoint)
 

@@ -111,4 +111,7 @@ def test_retry_limit(tmp_path, monkeypatch):
     assert len(calls) == 2
     assert task.attempts == 2
     assert task.status == "blocked"
-    assert "Human review required" in restored.decisions[-1]
+    assert (
+    "human review required"
+    in restored.decisions[-1].rationale.lower()
+)

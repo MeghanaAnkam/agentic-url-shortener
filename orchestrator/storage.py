@@ -3,7 +3,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-from orchestrator.state import Task, WorkflowState
+from orchestrator.state import Decision, Task, WorkflowState
 
 
 def utc_now() -> str:
@@ -37,12 +37,12 @@ def record_task_transitions(
         if previous == task.status:
             continue
 
-        if task.status == "running" and task.started_at is None:
+        if task.status == "running" and previous != "running":
             task.started_at = timestamp
+            task.completed_at = None
 
         if task.status in {"passed", "failed", "blocked"}:
-            if task.completed_at is None:
-                task.completed_at = timestamp
+            task.completed_at = timestamp
 
         state.events.append(
             {
@@ -85,5 +85,27 @@ def load_state(path: Path) -> WorkflowState:
         Task(**task)
         for task in data.get("tasks", [])
     ]
+
+    restored_decisions = []
+
+    for item in data.get("decisions", []):
+        if isinstance(item, str):
+            restored_decisions.append(
+                Decision(
+                    actor="legacy",
+                    stage="unknown",
+                    action="legacy_decision",
+                    outcome="recorded",
+                    rationale=item,
+                )
+            )
+        elif isinstance(item, dict):
+            restored_decisions.append(Decision(**item))
+        else:
+            raise ValueError(
+                f"Unsupported decision format: {type(item).__name__}"
+            )
+
+    data["decisions"] = restored_decisions
 
     return WorkflowState(**data)

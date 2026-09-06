@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from orchestrator.state import WorkflowState
+from orchestrator.state import WorkflowState, record_decision
 from orchestrator.storage import save_state
 
 
@@ -28,8 +28,13 @@ def request_design_approval(
     state.design_approval = (
         "approved" if answer == "approve" else "rejected"
     )
-    state.decisions.append(
-        f"Local human review: design {state.design_approval}."
+    record_decision(
+        state,
+        actor="human:design-reviewer",
+        stage="design",
+        action="review_design",
+        outcome=state.design_approval,
+        rationale="Local human design review completed.",
     )
     save_state(state, checkpoint)
     print("Design approval:", state.design_approval)
@@ -87,9 +92,13 @@ def request_release_approval(
         "approved" if answer == "approve" else "rejected"
     )
 
-    state.decisions.append(
-        f"Human release review: {state.release_approval}. "
-        f"Rationale: {rationale}"
+    record_decision(
+        state,
+        actor="human:release-reviewer",
+        stage="release",
+        action="review_release",
+        outcome=state.release_approval,
+        rationale=rationale,
     )
 
     save_state(state, checkpoint)

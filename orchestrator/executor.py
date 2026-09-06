@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from orchestrator.scheduler import ready_tasks
-from orchestrator.state import WorkflowState
+from orchestrator.state import WorkflowState, record_decision
 from orchestrator.storage import save_state
 from orchestrator.test_runner import run_api_tests
 
@@ -37,8 +37,16 @@ def retry_tests(state: WorkflowState, checkpoint: Path) -> None:
 
     if task.attempts >= 2:
         task.status = "blocked"
-        state.decisions.append(
-            "Test attempt limit reached. Human review required."
+        record_decision(
+            state,
+            actor="system:retry-controller",
+            stage="tests",
+            action="stop_retry",
+            outcome="blocked",
+            rationale=(
+                "Test attempt limit reached. "
+                "Human review required."
+            ),
         )
         save_state(state, checkpoint)
         raise ValueError("Retry limit reached. Human review required.")
