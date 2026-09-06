@@ -73,7 +73,16 @@ def test_rollback_records_event_and_decision(tmp_path):
     )
     assert implement_task.status == "failed"
     assert restored.release_approval == "pending"
-    assert any("Rollback executed" in d for d in restored.decisions)
+
+    rollback_decisions = [
+        decision
+        for decision in restored.decisions
+        if decision.action == "rollback_candidate"
+    ]
+    assert len(rollback_decisions) == 1
+    assert rollback_decisions[0].outcome == "rolled_back"
+    assert rollback_decisions[0].rationale == "Bad candidate"
+    assert rollback_decisions[0].stage == "implement"
 
 
 def test_rollback_requires_applied_implementation(tmp_path):

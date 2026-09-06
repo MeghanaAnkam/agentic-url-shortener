@@ -3,6 +3,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from orchestrator.state import record_decision
 from orchestrator.storage import load_state, save_state
 
 
@@ -18,8 +19,8 @@ def execute_rollback(
 ) -> None:
     """
     Restore app/main.py from the backup that apply_candidate.py made,
-    and record a rollback event so it shows up in the audit trail
-    and reliability metrics.
+    and record a rollback event + a structured Decision so it shows up
+    in the audit trail and reliability metrics.
     """
     task = next(t for t in state.tasks if t.id == "implement")
 
@@ -53,8 +54,11 @@ def execute_rollback(
     task.status = "failed"
     state.release_approval = "pending"
 
-    state.artifacts["rolled_back_from_sha256"] = digest(current_code)
-    state.artifacts["rolled_back_to_sha256"] = digest(backup_code)
+    from_hash = digest(current_code)
+    to_hash = digest(backup_code)
+
+    state.artifacts["rolled_back_from_sha256"] = from_hash
+    state.artifacts["rolled_back_to_sha256"] = to_hash
 
     state.events.append(
         {
@@ -65,9 +69,17 @@ def execute_rollback(
         }
     )
 
-    state.decisions.append(
-        f"Rollback executed: app/main.py restored from {backup}. "
-        f"Reason: {reason}"
+    record_decision(
+        state,
+        actor="human:release-reviewer",
+        stage="implement",
+        action="rollback_candidate",
+        outcome="rolled_back",
+        rationale=reason,
+        artifact_hashes={
+            "restored_from": from_hash,
+            "restored_to": to_hash,
+        },
     )
 
     save_state(state, checkpoint)
