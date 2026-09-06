@@ -53,11 +53,12 @@ Explain:
             -> implementation
                 -> tests
                 -> security
+                -> compliance
                 -> documentation
                     -> release [approval]
 
-Tests, security, and documentation form parallel branches that
-synchronize before release.
+Tests, security, compliance, and documentation form parallel
+branches that synchronize before release.
 
 ## 6. Human Governance
 
@@ -99,6 +100,18 @@ Explain the deterministic checks:
 - Foreign-key enforcement
 - Atomic counter updates
 - Controlled database lock timeout
+
+## 8b. Compliance
+
+Explain the deterministic compliance checks, which are distinct from
+security (code safety) -- these check data-privacy and scope:
+
+- PII and tracking-term scan of the application source
+- PII-shaped database column scan
+- Requirement out-of-scope violation detection (e.g. dashboard,
+  device tracking, date filters, automatic deletion)
+
+Release is blocked until compliance passes, the same as security.
 
 ## 9. Engineering Judgment
 

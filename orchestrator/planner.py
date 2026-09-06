@@ -11,11 +11,12 @@ def create_plan(state: WorkflowState) -> None:
         Task("implement", "Build the approved design", ["design"]),
         Task("tests", "Run automated tests", ["implement"]),
         Task("security", "Check security risks", ["implement"]),
+        Task("compliance", "Check data-privacy and scope compliance", ["implement"]),
         Task("docs", "Update setup and API documentation", ["implement"]),
         Task(
             "release",
             "Prepare release-readiness report",
-            ["tests", "security", "docs"],
+            ["tests", "security", "compliance", "docs"],
         ),
     ]
 

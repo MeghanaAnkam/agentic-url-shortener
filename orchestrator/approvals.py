@@ -43,7 +43,7 @@ def request_release_approval(
     state: WorkflowState,
     checkpoint: Path,
 ) -> None:
-    required_tasks = {"tests", "security", "docs"}
+    required_tasks = {"tests", "security", "compliance", "docs"}
 
     statuses = {
         task.id: task.status

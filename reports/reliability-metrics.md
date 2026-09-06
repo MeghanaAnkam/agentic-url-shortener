@@ -1,19 +1,19 @@
 # Reliability Metrics
 
-Run ID: 1dff1f83-8dc3-422d-b0dc-c783d6611a68
+Run ID: f616cac2-f4cd-4d3f-9d7e-07e69f701145
 
 ## Results
 
 - Success rate: 100.0%
-- Passed tasks: 7/7
-- Total attempts: 9
+- Passed tasks: 8/8
+- Total attempts: 10
 - Retries: 2
-- Retry frequency: 22.22%
+- Retry frequency: 20.0%
 - Rollbacks: 1
 - Safe stops: 0
 - MTTR: 0.038
-- End-to-end latency: 0.445 seconds
-- Audit events: 29
+- End-to-end latency: 0.499 seconds
+- Audit events: 32
 
 ## Timing Limitation
 

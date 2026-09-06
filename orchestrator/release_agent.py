@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from orchestrator.scheduler import ready_tasks
-from orchestrator.storage import load_state, save_state
 from orchestrator.state import record_decision
+from orchestrator.storage import load_state, save_state
 
 
 def execute_release(state, checkpoint: Path) -> dict:
@@ -20,7 +20,7 @@ def execute_release(state, checkpoint: Path) -> dict:
     save_state(state, checkpoint)
 
     try:
-        required = {"tests", "security", "docs"}
+        required = {"tests", "security", "compliance", "docs"}
         statuses = {
             item.id: item.status
             for item in state.tasks
@@ -69,6 +69,7 @@ Completed: {completed_at}
 
 - Tests: {statuses["tests"]}
 - Security: {statuses["security"]}
+- Compliance: {statuses["compliance"]}
 - Documentation: {statuses["docs"]}
 - Human approval: {state.release_approval}
 
@@ -90,16 +91,16 @@ No production deployment was performed.
         state.artifacts["release_report"] = str(report_path)
         state.artifacts["release_readiness"] = str(summary_path)
         record_decision(
-    state,
-    actor="agent:release",
-    stage="release",
-    action="prepare_release",
-    outcome="release_ready",
-    rationale=(
-        "Release-readiness gates passed after human approval. "
-        "No deployment was performed."
-    ),
-)
+            state,
+            actor="agent:release",
+            stage="release",
+            action="prepare_release",
+            outcome="release_ready",
+            rationale=(
+                "Release-readiness gates passed after human approval. "
+                "No deployment was performed."
+            ),
+        )
         save_state(state, checkpoint)
 
         return report
@@ -107,16 +108,15 @@ No production deployment was performed.
     except Exception as error:
         task.status = "failed"
         record_decision(
-    state,
-    actor="agent:release",
-    stage="release",
-    action="prepare_release",
-    outcome="failed",
-    rationale=(
-        f"Release failed safely: "
-        f"{type(error).__name__}: {error}"
-    ),
-)
+            state,
+            actor="agent:release",
+            stage="release",
+            action="prepare_release",
+            outcome="failed",
+            rationale=(
+                f"Release failed safely: {type(error).__name__}: {error}"
+            ),
+        )
         save_state(state, checkpoint)
         raise
 

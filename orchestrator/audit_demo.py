@@ -126,6 +126,9 @@ def main():
     transition(state, checkpoint, "security", "running")
     transition(state, checkpoint, "security", "passed")
 
+    transition(state, checkpoint, "compliance", "running")
+    transition(state, checkpoint, "compliance", "passed")
+
     transition(state, checkpoint, "docs", "running")
     transition(state, checkpoint, "docs", "passed")
 
