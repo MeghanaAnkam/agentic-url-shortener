@@ -12,6 +12,7 @@ Generated: 2026-09-06T04:36:02.699924+00:00
 - Candidate implementation agent
 - Isolated validation runner
 - Deterministic security agent
+- Deterministic compliance agent
 - Documentation and release-readiness stages
 - Persistent JSON workflow checkpoints
 
@@ -22,11 +23,13 @@ Generated: 2026-09-06T04:36:02.699924+00:00
             -> implement
                 -> tests
                 -> security
+                -> compliance
                 -> docs
                     -> release [human approval]
 
-Tests, security, and documentation can execute independently after
-implementation. Release waits for all three to pass.
+Tests, security, compliance, and documentation can execute
+independently after implementation. Release waits for all four to
+pass.
 
 ## Safety Controls
 
@@ -36,9 +39,11 @@ implementation. Release waits for all three to pass.
 - Candidate validation before application
 - Original application backup
 - Secret-file checks
+- Compliance review for PII, tracking terms, and scope violations
 - Controlled SQLite lock timeout
 - Atomic lifetime and daily counter updates
 - Safe stop when dependencies or approvals are missing
+- Rollback of applied candidates to the pre-apply backup
 
 ## Data Model
 

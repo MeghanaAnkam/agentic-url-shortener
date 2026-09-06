@@ -16,6 +16,7 @@ AI-agent execution across the software-development lifecycle.
 - Bounded retries and safe-stop behavior
 - Candidate isolation and validation
 - Security-review gate
+- Compliance-review gate (data-privacy and scope checks)
 - Documentation generation
 - Audit events and reliability metrics
 - Greenfield, brownfield, and ambiguous scenarios
@@ -31,11 +32,13 @@ The orchestration lifecycle is:
             -> implementation
                 -> tests
                 -> security
+                -> compliance
                 -> documentation
                     -> release [human approval]
 
-Tests, security, and documentation can run independently after
-implementation. Release requires all three and explicit human approval.
+Tests, security, compliance, and documentation can run independently
+after implementation. Release requires all four and explicit human
+approval.
 
 See `docs/architecture/overview.md` for details.
 
@@ -108,6 +111,20 @@ Example response:
 }
 ```
 
+## Running the Full Pipeline
+
+Each stage can still be run individually (see the scripts in
+`orchestrator/`), but `run_pipeline.py` drives the whole workflow
+forward automatically wherever no human decision is required, and
+pauses cleanly at requirements review, design approval, and release
+approval:
+
+    python -m orchestrator.run_pipeline runs/<run-id>/workflow.json
+
+Run it again after each approval to continue from where it stopped.
+It never auto-approves anything; it only removes the need to
+remember which script to run next.
+
 ## Testing
 
 Run:
@@ -116,7 +133,7 @@ Run:
 
 Current verified result:
 
-    33 passed
+    58 passed
 
 Two dependency deprecation warnings remain and are documented as a
 known limitation.
@@ -134,13 +151,13 @@ See `docs/scenarios/`.
 
 The audit demonstration recorded:
 
-- 7 completed tasks
-- 8 total attempts
-- 1 bounded retry
-- 12.5% retry frequency
-- 0.051-second MTTR
-- 0.4-second end-to-end latency
-- 24 audit events
+- 8 completed tasks
+- 10 total attempts
+- 2 bounded retries (one test retry, one post-rollback re-implementation)
+- 1 rollback
+- ~0.03-second MTTR
+- ~0.4-second end-to-end latency
+- 32 audit events
 
 These values come from a labelled local demonstration, not production
 traffic.
@@ -156,6 +173,13 @@ traffic.
 - Tracked-secret checks
 - Dangerous Python-call checks
 - Human design and release approvals
+
+## Compliance Controls
+
+- PII and tracking-term scan of application source
+- PII-shaped database column scan
+- Requirement out-of-scope violation detection
+- Release blocked until compliance passes
 
 ## Limitations
 
