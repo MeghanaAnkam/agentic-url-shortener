@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "url-shortener-agentic",
+			"path": ".."
+		},
+		{
+			"name": "requirements",
+			"path": "."
+		}
+	],
+	"settings": {}
+}

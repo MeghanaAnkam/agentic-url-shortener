@@ -1,0 +1,29 @@
+Extend GET /analytics/{short_code} with daily_counts.
+
+Acceptance criteria:
+- Always include daily_counts as a list of {"date": "YYYY-MM-DD", "count": integer}.
+- Group clicks by UTC calendar date and sort dates ascending.
+- Record daily counts only from feature activation onward.
+- Do not backfill historical daily counts.
+- Include only dates with recorded clicks.
+- Return [] when there are no daily records.
+- Preserve all existing response fields and lifetime click counts.
+- Preserve the existing 404 response for unknown short codes.
+
+Out of scope:
+- Dashboard
+- IP addresses, device details, or referrers
+- Date filters
+- Automatic deletion
+
+Database design will be proposed in the architecture stage
+and reviewed before implementation.
+
+Clarifications:
+- The existing lifetime field is named clicks. Preserve its value
+  and continue incrementing it for every redirect.
+- Always include daily_counts for both existing and new links.
+- Existing links start with no daily history but accumulate daily
+  counts when clicked after activation.
+- Lifetime clicks may exceed the sum of daily_counts.
+- Omit dates with zero clicks.
