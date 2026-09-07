@@ -210,6 +210,20 @@ Example response:
 }
 ```
 
+## Quick Demo (No API Key Required)
+
+    python -m orchestrator.demo
+
+Runs the complete 8-stage pipeline end to end using deterministic,
+self-contained logic -- no Gemini API key needed. It exercises a real
+bounded test retry, a real rollback, and prints live reliability
+metrics. This is the fastest way to see the whole system work.
+
+For real, non-simulated execution against the actual application
+(requires a Gemini API key), use `run_pipeline.py` below. For a
+demonstration of a genuine validation failure blocking release, see
+`docs/demo/failure-run/`.
+
 ## Running the Full Pipeline
 
 Each stage can still be run individually (see the scripts in

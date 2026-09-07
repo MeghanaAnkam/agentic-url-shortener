@@ -1,6 +1,6 @@
 # Reliability Metrics
 
-Run ID: eb728cac-e96e-4989-a863-d57f58fb6b16
+Run ID: 27dcb4f8-2862-483b-a225-e272c726e07d
 
 ## Results
 
@@ -11,8 +11,8 @@ Run ID: eb728cac-e96e-4989-a863-d57f58fb6b16
 - Retry frequency: 20.0%
 - Rollbacks: 1
 - Safe stops: 0
-- MTTR: 0.032
-- End-to-end latency: 0.398 seconds
+- MTTR: 0.04
+- End-to-end latency: 0.497 seconds
 - Audit events: 32
 
 ## Timing Limitation
