@@ -281,6 +281,27 @@ The audit demonstration recorded:
 These values come from a labelled local demonstration, not production
 traffic.
 
+### What We'd Measure in Production
+
+The metrics above prove the mechanism works; a real deployment would
+track these continuously, not just per-demo:
+
+| Metric | Why it matters |
+|---|---|
+| Success rate (per stage, not just overall) | Finds which stage is actually the weak point |
+| Retry count and retry frequency | Rising retries on one stage signals a regression before it becomes a failure |
+| Rollback frequency | Any rollback is a signal worth a human review, not just a recovery |
+| Human approval wait time | Design/release approval latency reveals process bottlenecks, not just code ones |
+| Validation failure rate by gate (tests / security / compliance) | Distinguishes "the code is often wrong" from "the checks are often too strict" |
+| Agent (Gemini) latency per stage | Separates AI-call time from deterministic-check time when diagnosing a slow run |
+| Token / API cost per workflow | Bounded retries and the fallback model both have direct cost implications worth tracking, not just correctness ones |
+
+`orchestrator/metrics.py` already computes several of these
+per-workflow (success rate, retry count, rollback count, MTTR,
+latency); the ones it doesn't yet (approval wait time, cost, per-stage
+Gemini latency) would need the same treatment: computed from real
+`state.events` timestamps, not estimated after the fact.
+
 ## Security Controls
 
 - HTTP/HTTPS validation
@@ -299,6 +320,16 @@ traffic.
 - PII-shaped database column scan
 - Requirement out-of-scope violation detection
 - Release blocked until compliance passes
+
+## Threat Model
+
+| Threat | Mitigation | Residual risk |
+|---|---|---|
+| Malicious URLs (phishing, `javascript:` links, open redirects) | Scheme is restricted to `http`/`https` before a short code is issued (`app/main.py`) | A `http(s)` URL can still point to a malicious site; this system shortens links, it does not vet destinations |
+| Prompt injection via scanned source or requirement text | Design/implementation prompts explicitly instruct the model to treat supplied source as data to inspect, not instructions to follow (`design_agent.py`, `implementation_agent.py`) | Mitigates, does not eliminate -- this is exactly why security and compliance checks are deterministic (AST/string-based), not LLM judgment calls, so a successful injection still can't talk its way past the gate |
+| Unsafe autonomous changes to the live application | Candidates are generated in isolation, hash-pinned at validation, backed up before apply, and require design approval before generation even begins | A logic error a human reviewer also misses can still be approved; the system defends against *unreviewed* change, not *incorrect* review |
+| Secrets exposure (API keys, credentials) | `security_agent.py` scans git-tracked files for `.env`, `*.pem`, `*.key`, etc.; `.gitignore` excludes them; the API key never appears in any saved workflow state | A key already committed to history before this check existed would not be caught retroactively |
+| Excessive agent permissions | Agents write only to isolated candidate files or their own checkpoint directory -- no shell access, no filesystem-wide writes; `security_agent.py` itself checks the codebase for `eval`/`exec`/`shell=True` | A new orchestrator stage added later that *does* need broader access would need the same scrutiny applied to it explicitly, not inherited for free |
 
 ## Limitations
 
