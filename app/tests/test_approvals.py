@@ -30,6 +30,14 @@ def test_design_approval(tmp_path, monkeypatch, answer, expected):
     assert restored.design_approval == expected
     assert restored.release_approval == "pending"
 
+    design_events = [
+        event
+        for event in restored.events
+        if event.get("event_type") == "design_approval"
+    ]
+    assert len(design_events) == 1
+    assert design_events[0]["outcome"] == expected
+
 
 def test_invalid_input_does_not_approve(tmp_path, monkeypatch):
     state = WorkflowState(requirement="Build a URL shortener")
@@ -129,6 +137,14 @@ def test_release_approval_records_decision_once_gates_pass(
     assert len(release_decisions) == 1
     assert release_decisions[0].outcome == expected
     assert release_decisions[0].rationale == "Reviewed and decided."
+
+    release_events = [
+        event
+        for event in restored.events
+        if event.get("event_type") == "release_approval"
+    ]
+    assert len(release_events) == 1
+    assert release_events[0]["outcome"] == expected
 
 
 def test_release_approval_requires_rationale(tmp_path, monkeypatch):

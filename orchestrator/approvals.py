@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from pathlib import Path
 
 from orchestrator.state import WorkflowState, record_decision
@@ -27,6 +28,13 @@ def request_design_approval(
 
     state.design_approval = (
         "approved" if answer == "approve" else "rejected"
+    )
+    state.events.append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "event_type": "design_approval",
+            "outcome": state.design_approval,
+        }
     )
     record_decision(
         state,
@@ -90,6 +98,14 @@ def request_release_approval(
 
     state.release_approval = (
         "approved" if answer == "approve" else "rejected"
+    )
+
+    state.events.append(
+        {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "event_type": "release_approval",
+            "outcome": state.release_approval,
+        }
     )
 
     record_decision(

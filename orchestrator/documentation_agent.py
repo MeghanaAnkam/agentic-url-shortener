@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from orchestrator.scheduler import ready_tasks
-from orchestrator.state import WorkflowState
+from orchestrator.state import WorkflowState, record_decision
 from orchestrator.storage import load_state, save_state
 
 
@@ -95,7 +95,10 @@ calendar date.
 """
 
     decisions = "\n".join(
-        f"- {decision}" for decision in state.decisions
+        f"- {decision.timestamp} | actor={decision.actor} | "
+        f"stage={decision.stage} | action={decision.action} | "
+        f"outcome={decision.outcome} | rationale={decision.rationale}"
+        for decision in state.decisions
     )
 
     if not decisions:
@@ -244,8 +247,13 @@ final quality.
             summary_path
         )
 
-        state.decisions.append(
-            "Documentation generated and validated deterministically."
+        record_decision(
+            state,
+            actor="system:documentation-generator",
+            stage="docs",
+            action="generate_documentation",
+            outcome="passed",
+            rationale="Documentation generated and validated deterministically.",
         )
 
         save_state(state, checkpoint)
@@ -254,9 +262,16 @@ final quality.
     except Exception as error:
         task.status = "failed"
 
-        state.decisions.append(
-            f"Documentation failed safely: "
-            f"{type(error).__name__}: {error}"
+        record_decision(
+            state,
+            actor="system:documentation-generator",
+            stage="docs",
+            action="generate_documentation",
+            outcome="failed",
+            rationale=(
+                f"Documentation failed safely: "
+                f"{type(error).__name__}: {error}"
+            ),
         )
 
         save_state(state, checkpoint)

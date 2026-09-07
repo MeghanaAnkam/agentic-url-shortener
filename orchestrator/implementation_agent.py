@@ -1,11 +1,8 @@
 import ast
-import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
-from google import genai
-
+from orchestrator.gemini_client import generate_with_fallback, load_gemini_config
 from orchestrator.scheduler import ready_tasks
 from orchestrator.state import record_decision
 from orchestrator.storage import load_state, save_state
@@ -30,11 +27,10 @@ def main():
     if source != state.artifacts.get("design_source"):
         raise SystemExit("Application changed since design. Review required.")
 
-    load_dotenv(project / ".env")
-    key = os.getenv("GEMINI_API_KEY")
-    model = os.getenv("GEMINI_MODEL")
-    if not key or not model:
-        raise SystemExit("Missing Gemini configuration.")
+    try:
+        config = load_gemini_config(project)
+    except ValueError as error:
+        raise SystemExit(str(error))
 
     candidate = checkpoint.parent / "candidate_main.py"
     if candidate.exists():
@@ -87,16 +83,9 @@ Constraints:
     save_state(state, checkpoint)
 
     try:
-        with genai.Client(
-            api_key=key,
-            http_options={"timeout": 60000},
-        ) as client:
-            response = client.models.generate_content(
-                model=model,
-                contents=prompt,
-            )
+        result = generate_with_fallback(config, prompt)
 
-        code = (response.text or "").strip()
+        code = result.text.strip()
         if not code:
             raise ValueError("Empty response")
 
@@ -109,16 +98,24 @@ Constraints:
         state.artifacts["candidate_main"] = str(candidate)
         state.artifacts["implementation_test_source"] = tests
         task.status = "blocked"
+
+        rationale = (
+            "Candidate generated and syntax checked. "
+            "Execution and application require review."
+        )
+        if result.fallback_used:
+            rationale += (
+                f" Fallback model '{result.model_used}' was used "
+                "because the primary model was unavailable."
+            )
+
         record_decision(
             state,
             actor="agent:implementation",
             stage="implement",
             action="generate_candidate",
             outcome="awaiting_validation",
-            rationale=(
-                "Candidate generated and syntax checked. "
-                "Execution and application require review."
-            ),
+            rationale=rationale,
         )
         save_state(state, checkpoint)
 
@@ -126,8 +123,7 @@ Constraints:
         task.status = "failed"
         save_state(state, checkpoint)
         raise SystemExit(
-            f"Generation failed: {type(error).__name__}; "
-            f"status={getattr(error, 'code', 'unavailable')}"
+            f"Generation failed: {type(error).__name__}: {error}"
         )
 
     print("Candidate saved:", candidate)

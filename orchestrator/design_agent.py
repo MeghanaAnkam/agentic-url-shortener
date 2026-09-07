@@ -1,10 +1,7 @@
-import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
-from google import genai
-
+from orchestrator.gemini_client import generate_with_fallback, load_gemini_config
 from orchestrator.scheduler import ready_tasks
 from orchestrator.state import record_decision
 from orchestrator.storage import load_state, save_state
@@ -36,11 +33,10 @@ def main():
     if "design" not in ready_tasks(state):
         raise SystemExit("Design is not ready.")
 
-    load_dotenv(project / ".env")
-    key = os.getenv("GEMINI_API_KEY")
-    model = os.getenv("GEMINI_MODEL")
-    if not key or not model:
-        raise SystemExit("Missing Gemini configuration.")
+    try:
+        config = load_gemini_config(project)
+    except ValueError as error:
+        raise SystemExit(str(error))
 
     source = (project / "app" / "main.py").read_text(encoding="utf-8")
     task = next(t for t in state.tasks if t.id == "design")
@@ -87,44 +83,39 @@ Do not propose deleting existing data.
     save_state(state, checkpoint)
 
     try:
-        with genai.Client(
-            api_key=key,
-            http_options={"timeout": 60000},
-        ) as client:
-            response = client.models.generate_content(
-                model=model,
-                contents=prompt,
-            )
+        result = generate_with_fallback(config, prompt)
 
-        if not response.text:
-            raise ValueError("No design returned.")
-
-        state.artifacts["design"] = response.text
+        state.artifacts["design"] = result.text
         state.artifacts["design_source"] = source
         state.design_approval = "pending"
         task.status = "passed"
+
+        rationale = (
+            "Design proposal generated. Implementation remains "
+            "blocked until human approval."
+        )
+        if result.fallback_used:
+            rationale += (
+                f" Fallback model '{result.model_used}' was used "
+                "because the primary model was unavailable."
+            )
+
         record_decision(
             state,
             actor="agent:architect",
             stage="design",
             action="generate_design",
             outcome="awaiting_human_approval",
-            rationale=(
-                "Design proposal generated. Implementation remains "
-                "blocked until human approval."
-            ),
+            rationale=rationale,
         )
         save_state(state, checkpoint)
 
     except Exception as error:
         task.status = "failed"
         save_state(state, checkpoint)
-        raise SystemExit(
-            f"Design failed: {type(error).__name__}; "
-            f"status={getattr(error, 'code', 'unavailable')}"
-        )
+        raise SystemExit(f"Design failed: {type(error).__name__}: {error}")
 
-    print(response.text)
+    print(result.text)
     print("\nProposal saved. Implementation awaits design approval.")
 
 

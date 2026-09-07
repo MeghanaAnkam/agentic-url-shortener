@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from orchestrator.scheduler import ready_tasks
-from orchestrator.state import WorkflowState
+from orchestrator.state import WorkflowState, record_decision
 from orchestrator.storage import load_state, save_state
 
 
@@ -153,8 +153,13 @@ def run_security_review(
 
         task.status = status
         state.artifacts["security_report"] = str(report_path)
-        state.decisions.append(
-            f"Deterministic security review completed: {status}."
+        record_decision(
+            state,
+            actor="system:security-checker",
+            stage="security",
+            action="run_security_review",
+            outcome=status,
+            rationale=f"Deterministic security review completed: {status}.",
         )
         save_state(state, checkpoint)
 
@@ -162,9 +167,16 @@ def run_security_review(
 
     except Exception as error:
         task.status = "failed"
-        state.decisions.append(
-            f"Security review failed safely: "
-            f"{type(error).__name__}: {error}"
+        record_decision(
+            state,
+            actor="system:security-checker",
+            stage="security",
+            action="run_security_review",
+            outcome="failed",
+            rationale=(
+                f"Security review failed safely: "
+                f"{type(error).__name__}: {error}"
+            ),
         )
         save_state(state, checkpoint)
         raise

@@ -1,5 +1,10 @@
-from orchestrator.metrics import calculate_metrics, calculate_mttr
+from orchestrator.metrics import (
+    calculate_metrics,
+    calculate_mttr,
+    generate_metrics_report,
+)
 from orchestrator.state import Task, WorkflowState
+from orchestrator.storage import load_state, save_state
 
 
 def test_metrics_calculate_success_and_retries():
@@ -63,3 +68,29 @@ def test_metrics_report_missing_history_honestly():
     assert metrics["event_count"] == 0
     assert metrics["historical_timing_complete"] is False
     assert metrics["mttr_seconds"] is None
+
+
+def test_generate_metrics_report_records_structured_decision(tmp_path):
+    state = WorkflowState(requirement="Metrics decision test")
+    state.tasks = [
+        Task(
+            id="one",
+            description="Passed task",
+            status="passed",
+            attempts=1,
+        ),
+    ]
+
+    checkpoint = tmp_path / "workflow.json"
+    save_state(state, checkpoint)
+
+    generate_metrics_report(state, checkpoint)
+
+    restored = load_state(checkpoint)
+    metrics_decisions = [
+        decision
+        for decision in restored.decisions
+        if decision.action == "generate_metrics_report"
+    ]
+    assert len(metrics_decisions) == 1
+    assert metrics_decisions[0].actor == "system:metrics-generator"

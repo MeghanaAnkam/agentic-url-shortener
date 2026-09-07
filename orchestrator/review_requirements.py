@@ -23,7 +23,7 @@ def main():
     save_state(state, checkpoint)
 
     try:
-        analysis = analyze_requirement(state.requirement)
+        result = analyze_requirement(state.requirement)
     except Exception as error:
         task.status = "failed"
         record_decision(
@@ -40,22 +40,31 @@ def main():
         save_state(state, checkpoint)
         raise SystemExit("Analysis failed. Workflow saved as failed.")
 
-    state.artifacts["requirements_analysis"] = analysis
+    state.artifacts["requirements_analysis"] = result.text
     task.status = "blocked"
+
+    rationale = "AI analysis saved. Human requirements review is required."
+    if result.fallback_used:
+        rationale += (
+            f" Fallback model '{result.model_used}' was used because "
+            "the primary model was unavailable."
+        )
+
     record_decision(
         state,
         actor="agent:requirements",
         stage="requirements",
         action="analyze_requirement",
         outcome="awaiting_human_review",
-        rationale=(
-            "AI analysis saved. "
-            "Human requirements review is required."
-        ),
+        rationale=rationale,
     )
     save_state(state, checkpoint)
 
-    print(analysis)
+    print(result.text)
+
+    if result.fallback_used:
+        print(f"\n(Note: fallback model '{result.model_used}' was used.)")
+
     print("\nSaved. Design remains blocked pending human review.")
 
 

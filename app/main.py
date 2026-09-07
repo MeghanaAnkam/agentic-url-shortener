@@ -17,6 +17,28 @@ class ShortenRequest(BaseModel):
     original_url: str
 
 
+class ShortenResponse(BaseModel):
+    short_code: str
+    short_url: str
+
+
+class DailyCount(BaseModel):
+    date: str
+    count: int
+
+
+class AnalyticsResponse(BaseModel):
+    short_code: str
+    original_url: str
+    clicks: int
+    created_at: str
+    daily_counts: list[DailyCount]
+
+
+class HealthResponse(BaseModel):
+    message: str
+
+
 def get_db():
     conn = sqlite3.connect(DB_NAME, timeout=5)
     conn.execute("PRAGMA foreign_keys = ON")
@@ -51,12 +73,12 @@ def setup_database():
 setup_database()
 
 
-@app.get("/")
+@app.get("/", response_model=HealthResponse)
 def health_check():
     return {"message": "URL Shortener is running"}
 
 
-@app.post("/shorten")
+@app.post("/shorten", response_model=ShortenResponse)
 def shorten_url(request: ShortenRequest):
     parsed_url = urlparse(request.original_url)
 
@@ -115,7 +137,7 @@ def redirect_to_original_url(short_code: str):
         raise
 
 
-@app.get("/analytics/{short_code}")
+@app.get("/analytics/{short_code}", response_model=AnalyticsResponse)
 def get_analytics(short_code: str):
     with closing(get_db()) as conn, conn:
         conn.execute("BEGIN")

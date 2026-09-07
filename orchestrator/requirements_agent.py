@@ -1,18 +1,11 @@
-import os
 from pathlib import Path
 
-from dotenv import load_dotenv
-from google import genai
+from orchestrator.gemini_client import GeminiResult, generate_with_fallback, load_gemini_config
 
 
-def analyze_requirement(requirement: str) -> str:
-    load_dotenv(Path(__file__).resolve().parents[1] / ".env")
-
-    key = os.getenv("GEMINI_API_KEY")
-    model = os.getenv("GEMINI_MODEL")
-
-    if not key or not model:
-        raise ValueError("Missing Gemini configuration in .env.")
+def analyze_requirement(requirement: str) -> GeminiResult:
+    project_root = Path(__file__).resolve().parents[1]
+    config = load_gemini_config(project_root)
 
     prompt = f"""
 You are a requirements analyst. Do not write code.
@@ -47,19 +40,7 @@ Return:
 For vague requests, use NEEDS_CLARIFICATION.
 """
 
-    with genai.Client(
-        api_key=key,
-        http_options={"timeout": 60000},
-    ) as client:
-        response = client.models.generate_content(
-            model=model,
-            contents=prompt,
-        )
-
-    if not response.text:
-        raise ValueError("The model returned no text.")
-
-    return response.text
+    return generate_with_fallback(config, prompt)
 
 
 if __name__ == "__main__":
@@ -69,7 +50,11 @@ if __name__ == "__main__":
         raise SystemExit("Please enter a requirement.")
 
     try:
-        print(analyze_requirement(request))
+        result = analyze_requirement(request)
+        print(result.text)
+
+        if result.fallback_used:
+            print(f"\n(Note: fallback model '{result.model_used}' was used.)")
     except Exception as error:
         print("Analysis failed:", type(error).__name__)
         print("Status code:", getattr(error, "code", "unavailable"))

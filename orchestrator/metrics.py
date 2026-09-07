@@ -3,6 +3,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from orchestrator.state import record_decision
 from orchestrator.storage import load_state, save_state
 
 
@@ -178,9 +179,17 @@ must be used to demonstrate complete event timing.
 
     state.artifacts["metrics_json"] = str(json_path)
     state.artifacts["reliability_metrics"] = str(markdown_path)
-    state.decisions.append(
-        "Reliability metrics generated. Historical timing limitations "
-        "were reported without fabricating missing data."
+    record_decision(
+        state,
+        actor="system:metrics-generator",
+        stage="release",
+        action="generate_metrics_report",
+        outcome="passed",
+        rationale=(
+            "Reliability metrics generated. Historical timing "
+            "limitations were reported without fabricating missing "
+            "data."
+        ),
     )
 
     save_state(state, checkpoint)
