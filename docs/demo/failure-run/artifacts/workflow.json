@@ -1,0 +1,197 @@
+{
+  "requirement": "Extend GET /analytics/{short_code} with daily_counts.\n\nAcceptance criteria:\n- Always include daily_counts as a list of {\"date\": \"YYYY-MM-DD\", \"count\": integer}.\n- Group clicks by UTC calendar date and sort dates ascending.\n- Record daily counts only from feature activation onward.\n- Do not backfill historical daily counts.\n- Include only dates with recorded clicks.\n- Return [] when there are no daily records.\n- Preserve all existing response fields and lifetime click counts.\n- Preserve the existing 404 response for unknown short codes.\n\nOut of scope:\n- Dashboard\n- IP addresses, device details, or referrers\n- Date filters\n- Automatic deletion\n\nDatabase design will be proposed in the architecture stage\nand reviewed before implementation.\n\nClarifications:\n- The existing lifetime field is named clicks. Preserve its value\n  and continue incrementing it for every redirect.\n- Always include daily_counts for both existing and new links.\n- Existing links start with no daily history but accumulate daily\n  counts when clicked after activation.\n- Lifetime clicks may exceed the sum of daily_counts.\n- Omit dates with zero clicks.",
+  "run_id": "7f37daee-b14d-4c0e-abe7-f0eba991b995",
+  "tasks": [
+    {
+      "id": "requirements",
+      "description": "Clarify requirement and acceptance criteria",
+      "depends_on": [],
+      "status": "passed",
+      "attempts": 0,
+      "started_at": null,
+      "completed_at": "2026-09-07T04:32:28.101884+00:00"
+    },
+    {
+      "id": "design",
+      "description": "Design APIs and database",
+      "depends_on": [
+        "requirements"
+      ],
+      "status": "passed",
+      "attempts": 0,
+      "started_at": null,
+      "completed_at": "2026-09-07T04:32:28.101884+00:00"
+    },
+    {
+      "id": "implement",
+      "description": "Build the approved design",
+      "depends_on": [
+        "design"
+      ],
+      "status": "passed",
+      "attempts": 0,
+      "started_at": null,
+      "completed_at": "2026-09-07T04:32:28.101884+00:00"
+    },
+    {
+      "id": "tests",
+      "description": "Run automated tests",
+      "depends_on": [
+        "implement"
+      ],
+      "status": "passed",
+      "attempts": 0,
+      "started_at": null,
+      "completed_at": "2026-09-07T04:32:28.101884+00:00"
+    },
+    {
+      "id": "security",
+      "description": "Check security risks",
+      "depends_on": [
+        "implement"
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "started_at": null,
+      "completed_at": null
+    },
+    {
+      "id": "compliance",
+      "description": "Check data-privacy and scope compliance",
+      "depends_on": [
+        "implement"
+      ],
+      "status": "failed",
+      "attempts": 1,
+      "started_at": "2026-09-07T04:32:28.102293+00:00",
+      "completed_at": "2026-09-07T04:32:28.103227+00:00"
+    },
+    {
+      "id": "docs",
+      "description": "Update setup and API documentation",
+      "depends_on": [
+        "implement"
+      ],
+      "status": "passed",
+      "attempts": 0,
+      "started_at": null,
+      "completed_at": "2026-09-07T04:32:28.101884+00:00"
+    },
+    {
+      "id": "release",
+      "description": "Prepare release-readiness report",
+      "depends_on": [
+        "tests",
+        "security",
+        "compliance",
+        "docs"
+      ],
+      "status": "pending",
+      "attempts": 0,
+      "started_at": null,
+      "completed_at": null
+    }
+  ],
+  "decisions": [
+    {
+      "id": "50c15653-5a99-4928-9c93-51d7ef1dfbdc",
+      "timestamp": "2026-09-07T04:32:28.103205+00:00",
+      "actor": "system:compliance-checker",
+      "stage": "compliance",
+      "action": "run_compliance_review",
+      "outcome": "failed",
+      "rationale": "Deterministic compliance review completed: failed.",
+      "artifact_hashes": {},
+      "supersedes": null
+    }
+  ],
+  "artifacts": {
+    "compliance_report": "docs/demo/failure-run/artifacts/compliance_report.json"
+  },
+  "design_approval": "approved",
+  "release_approval": "pending",
+  "created_at": "2026-09-07T04:32:28.101793+00:00",
+  "updated_at": "2026-09-07T04:32:28.103227+00:00",
+  "events": [
+    {
+      "timestamp": "2026-09-07T04:32:28.101884+00:00",
+      "event_type": "task_transition",
+      "task_id": "requirements",
+      "from_status": null,
+      "to_status": "passed",
+      "attempt": 0
+    },
+    {
+      "timestamp": "2026-09-07T04:32:28.101884+00:00",
+      "event_type": "task_transition",
+      "task_id": "design",
+      "from_status": null,
+      "to_status": "passed",
+      "attempt": 0
+    },
+    {
+      "timestamp": "2026-09-07T04:32:28.101884+00:00",
+      "event_type": "task_transition",
+      "task_id": "implement",
+      "from_status": null,
+      "to_status": "passed",
+      "attempt": 0
+    },
+    {
+      "timestamp": "2026-09-07T04:32:28.101884+00:00",
+      "event_type": "task_transition",
+      "task_id": "tests",
+      "from_status": null,
+      "to_status": "passed",
+      "attempt": 0
+    },
+    {
+      "timestamp": "2026-09-07T04:32:28.101884+00:00",
+      "event_type": "task_transition",
+      "task_id": "security",
+      "from_status": null,
+      "to_status": "pending",
+      "attempt": 0
+    },
+    {
+      "timestamp": "2026-09-07T04:32:28.101884+00:00",
+      "event_type": "task_transition",
+      "task_id": "compliance",
+      "from_status": null,
+      "to_status": "pending",
+      "attempt": 0
+    },
+    {
+      "timestamp": "2026-09-07T04:32:28.101884+00:00",
+      "event_type": "task_transition",
+      "task_id": "docs",
+      "from_status": null,
+      "to_status": "passed",
+      "attempt": 0
+    },
+    {
+      "timestamp": "2026-09-07T04:32:28.101884+00:00",
+      "event_type": "task_transition",
+      "task_id": "release",
+      "from_status": null,
+      "to_status": "pending",
+      "attempt": 0
+    },
+    {
+      "timestamp": "2026-09-07T04:32:28.102293+00:00",
+      "event_type": "task_transition",
+      "task_id": "compliance",
+      "from_status": "pending",
+      "to_status": "running",
+      "attempt": 1
+    },
+    {
+      "timestamp": "2026-09-07T04:32:28.103227+00:00",
+      "event_type": "task_transition",
+      "task_id": "compliance",
+      "from_status": "running",
+      "to_status": "failed",
+      "attempt": 1
+    }
+  ]
+}

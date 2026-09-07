@@ -1,0 +1,16 @@
+{
+  "run_id": "7f37daee-b14d-4c0e-abe7-f0eba991b995",
+  "checked_at": "2026-09-07T04:32:28.103070+00:00",
+  "status": "failed",
+  "findings": [
+    "Possible PII/tracking term found in application source: 'ip_address'",
+    "Possible PII/tracking term found in application source: 'client.host'",
+    "Out-of-scope item 'IP addresses, device details, or referrers' (from daily_clicks.txt) appears implemented: found 'ip_address' in source.",
+    "Out-of-scope item 'IP addresses, device details, or referrers' (from daily_clicks.txt) appears implemented: found 'client.host' in source."
+  ],
+  "controls_checked": [
+    "PII/tracking terms in application source",
+    "PII-shaped database columns",
+    "requirement out-of-scope violations"
+  ]
+}
