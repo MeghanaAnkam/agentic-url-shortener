@@ -1,0 +1,27 @@
+{
+  "run_id": "dcf80f46-290d-4904-9280-b786d5686214",
+  "total_tasks": 8,
+  "passed_tasks": 8,
+  "failed_tasks": 0,
+  "blocked_tasks": 0,
+  "success_rate_percent": 100.0,
+  "total_attempts": 4,
+  "retry_count": 0,
+  "retry_frequency_percent": 0.0,
+  "rollback_count": 0,
+  "safe_stop_count": 0,
+  "mttr_seconds": null,
+  "end_to_end_latency_seconds": 0.688,
+  "task_latency_seconds": {
+    "requirements": null,
+    "design": null,
+    "implement": null,
+    "tests": 0.644,
+    "security": 0.037,
+    "compliance": 0.002,
+    "docs": null,
+    "release": 0.001
+  },
+  "event_count": 18,
+  "historical_timing_complete": true
+}

@@ -1,0 +1,24 @@
+{
+  "run_id": "dcf80f46-290d-4904-9280-b786d5686214",
+  "status": "release_ready",
+  "completed_at": "2026-09-07T04:09:16.328372+00:00",
+  "release_approval": "approved",
+  "gates": {
+    "tests": "passed",
+    "security": "passed",
+    "compliance": "passed",
+    "docs": "passed"
+  },
+  "deployment_performed": false,
+  "artifacts": {
+    "test_output": "....                                                                     [100%]\n=============================== warnings summary ===============================\n.venv/lib/python3.12/site-packages/fastapi/testclient.py:1\n  <your-venv-path>/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.\n    from starlette.testclient import TestClient as TestClient  # noqa\n\n.venv/lib/python3.12/site-packages/starlette/testclient.py:53\n  <your-venv-path>/lib/python3.12/site-packages/starlette/testclient.py:53: DeprecationWarning: The anyio.abc.BlockingPortal alias is deprecated, use anyio.from_thread.BlockingPortal instead.\n    _PortalFactoryType = Callable[[], AbstractContextManager[anyio.abc.BlockingPortal]]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n4 passed, 2 warnings in 0.37s\n",
+    "security_report": "docs/demo/sample-run/artifacts/security_report.json",
+    "compliance_report": "docs/demo/sample-run/artifacts/compliance_report.json"
+  },
+  "limitations": [
+    "Local prototype only",
+    "No production deployment performed",
+    "SQLite supports limited write concurrency",
+    "Authentication and rate limiting are not implemented"
+  ]
+}

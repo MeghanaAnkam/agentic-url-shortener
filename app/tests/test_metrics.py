@@ -70,7 +70,15 @@ def test_metrics_report_missing_history_honestly():
     assert metrics["mttr_seconds"] is None
 
 
-def test_generate_metrics_report_records_structured_decision(tmp_path):
+def test_generate_metrics_report_records_structured_decision(
+    tmp_path, monkeypatch
+):
+    # generate_metrics_report() writes reports/reliability-metrics.md
+    # relative to the current working directory, not the checkpoint
+    # path. Without this, running the test suite would silently
+    # overwrite the real, committed report every time.
+    monkeypatch.chdir(tmp_path)
+
     state = WorkflowState(requirement="Metrics decision test")
     state.tasks = [
         Task(
