@@ -71,6 +71,11 @@ dependency on each other and only converge at Release.
 
 See `docs/architecture/overview.md` for details.
 
+Key design decisions are recorded as ADRs in `docs/adr/`:
+[why SQLite](docs/adr/0001-sqlite-for-storage.md),
+[why human approval gates exist](docs/adr/0002-human-approval-gates.md),
+[why ambiguous requirements halt execution](docs/adr/0003-ambiguous-requirements-halt.md).
+
 ## Low-Level Design
 
 ### API Contract
